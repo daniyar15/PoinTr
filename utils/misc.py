@@ -8,6 +8,7 @@ import torch.nn.functional as F
 import os
 from collections import abc
 from pointnet2_ops import pointnet2_utils
+import open3d as o3d
 
 def jitter_points(pc, std=0.01, clip=0.05):
     bsize = pc.size()[0]
@@ -226,6 +227,10 @@ def get_ptcloud_img(ptcloud):
     img = img.reshape(fig.canvas.get_width_height()[::-1] + (3, ))
     return img
 
+def get_ptcloud_o3d(ptcloud):
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(ptcloud)
+    return pcd
 
 
 def visualize_KITTI(path, data_list, titles = ['input','pred'], cmap=['bwr','autumn'], zdir='y', 

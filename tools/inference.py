@@ -7,6 +7,7 @@ import os
 import numpy as np
 import cv2
 import sys
+import open3d
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, '../'))
 
@@ -31,7 +32,12 @@ def get_args():
         '--save_vis_img',
         action='store_true',
         default=False,
-        help='whether to save img of complete point cloud') 
+        help='whether to save img of complete point cloud')
+    parser.add_argument(
+        '--save_ply',
+        action='store_true',
+        default=False,
+        help='whether to save input and complete point clouds in .ply format')
     parser.add_argument(
         '--out_pc_root',
         type=str,
@@ -64,6 +70,13 @@ def inference_single(model, pc_path, args, config, root=None):
         m = np.max(np.sqrt(np.sum(pc_ndarray**2, axis=1)))
         pc_ndarray = pc_ndarray / m
 
+    # save the input point cloud in .ply format for visualization
+    if args.out_pc_root != '' and args.save_ply:
+        target_path = os.path.join(args.out_pc_root, os.path.splitext(pc_path)[0])
+        os.makedirs(target_path, exist_ok=True)
+        pc_o3d = misc.get_ptcloud_o3d(pc_ndarray)
+        open3d.io.write_point_cloud(os.path.join(target_path, 'input.ply'), pc_o3d)
+
     transform = Compose([{
         'callback': 'UpSamplePoints',
         'parameters': {
@@ -88,7 +101,11 @@ def inference_single(model, pc_path, args, config, root=None):
     if args.out_pc_root != '':
         target_path = os.path.join(args.out_pc_root, os.path.splitext(pc_path)[0])
         os.makedirs(target_path, exist_ok=True)
-
+        if args.save_ply:
+            # save the output point cloud in .ply format for visualization
+            dense_o3d = misc.get_ptcloud_o3d(dense_points)
+            open3d.io.write_point_cloud(os.path.join(target_path, 'fine.ply'), dense_o3d)
+        # save the output in .npy format
         np.save(os.path.join(target_path, 'fine.npy'), dense_points)
         if args.save_vis_img:
             input_img = misc.get_ptcloud_img(pc_ndarray_normalized['input'].numpy())
