@@ -1,0 +1,6 @@
+NAME: CrossCDR
+DATA_PATH: data/CrossCDR
+N_POINTS: 8192
+N_INPUT_POINTS: 2048
+PARTIAL_TYPE: clean  # noisy | clean
+CARS: FALSE
